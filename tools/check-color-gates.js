@@ -62,6 +62,10 @@ async function main() {
     }
 
     const result = await evaluate(send, `(async () => {
+      completed.clear();
+      ratings = {};
+      localStorage.removeItem(progressKey);
+      localStorage.removeItem(ratingsKey);
       makeLevel(14);
       const redGate = board.children[4];
       const redInitiallyClosed = !redGate.classList.contains('open');
@@ -89,6 +93,15 @@ async function main() {
       }
 
       const challengeRatings = challengeWins.map((item) => ({ level: item.level, stars: ratings[item.level - 1]?.stars, perfect: ratings[item.level - 1]?.perfect }));
+      completeModal.classList.remove('show');
+      makeLevel(0);
+      state.path = [...levels[0].solution, levels[0].solution.at(-1)];
+      win();
+      const twoStarHasNoPerfect = ratingStars.textContent === '★★☆'
+        && ratings[0]?.stars === 2
+        && ratings[0]?.perfect === false
+        && perfectBadge.hidden;
+
       completeModal.classList.remove('show');
       makeLevel(0);
       enter(levels[0].solution[1]);
@@ -126,7 +139,12 @@ async function main() {
         ratings,
         completed: [...completed],
       });
-      const replayFinished = await startReplay(0);
+      const replayPromise = startReplay(20);
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      const replayHidesRealOrders = replay.active
+        && board.querySelector('.ghost-order') !== null
+        && [...board.querySelectorAll('.order')].every((badge) => getComputedStyle(badge).display === 'none');
+      const replayFinished = await replayPromise;
       const stateAfterReplay = JSON.stringify({
         path: state.path,
         shelf: state.shelf,
@@ -160,7 +178,7 @@ async function main() {
         modalLeft: Math.round(modalRect.left),
         modalRight: Math.round(modalRect.right),
       };
-      return { redInitiallyClosed, redOpened, redEntered, redClosedAfterUndo, blueOpened, blueEntered, challengeWins, challengeRatings, undoKeepsThreeWithoutPerfect, recoveredFailureRatesOne, shelfWarnsAtOneSlot, shelfWarningClears, replayLeavesStateUntouched, soundTogglePersists, retryResetsAttempt, modalVisible, layout };
+      return { redInitiallyClosed, redOpened, redEntered, redClosedAfterUndo, blueOpened, blueEntered, challengeWins, challengeRatings, twoStarHasNoPerfect, undoKeepsThreeWithoutPerfect, recoveredFailureRatesOne, shelfWarnsAtOneSlot, shelfWarningClears, replayHidesRealOrders, replayLeavesStateUntouched, soundTogglePersists, retryResetsAttempt, modalVisible, layout };
     })()`);
 
     const failed = Object.entries(result)
