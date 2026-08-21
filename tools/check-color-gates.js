@@ -55,11 +55,16 @@ async function main() {
         mobile: viewportWidth <= 760,
       });
     }
+    let ready = false;
     for (let attempt = 0; attempt < 40; attempt += 1) {
-      const ready = await evaluate(send, `document.readyState === 'complete' && typeof makeLevel === 'function'`);
-      if (ready) break;
+      const pageReady = await evaluate(send, `document.readyState === 'complete' && typeof makeLevel === 'function'`);
+      if (pageReady) {
+        ready = true;
+        break;
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    if (!ready) throw new Error('Game page did not become ready. Check index.html for script errors.');
 
     const result = await evaluate(send, `(async () => {
       completed.clear();
@@ -114,7 +119,7 @@ async function main() {
 
       completeModal.classList.remove('show');
       makeLevel(3);
-      [1, 2, 3, 4, 9, 14].forEach(enter);
+      [1, 2, 8, 9].forEach(enter);
       const overflowRecorded = state.mistakes === 1;
       while (state.path.length > 1) document.querySelector('#undo').click();
       levels[3].solution.slice(1).forEach(enter);
