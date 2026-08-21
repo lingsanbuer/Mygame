@@ -1,0 +1,13 @@
+.claude/
+.vscode/
+node_modules/
+*.code-workspace
+*.log
+*.tmp
+*.zip
+*.pdf
+index.overwritten-*.html
+chrome-*/
+*-check.png
+rating-*.png
+AI Native */
